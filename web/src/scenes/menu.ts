@@ -1,6 +1,6 @@
 import type { K } from "../game";
 import { VW, VH } from "../game";
-import { unlockAudio, setMuted, isMuted } from "../lib/audio";
+import { unlockAudio, toggleMuted, isMuted } from "../lib/audio";
 
 export function runMenu(k: K, _onScore: (n: number) => void) {
   _onScore(0);
@@ -152,8 +152,7 @@ export function runMenu(k: K, _onScore: (n: number) => void) {
     }
     // Sound toggle
     if (mp.x > VW / 2 - 100 && mp.x < VW / 2 + 100 && mp.y > 400 && mp.y < 440) {
-      setMuted(!isMuted());
-      unlockAudio();
+      toggleMuted();
       return;
     }
   });

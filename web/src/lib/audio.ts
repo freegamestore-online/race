@@ -25,8 +25,19 @@ export function isMuted() {
   return muted;
 }
 
+let toggleHandler: () => void = () => setMuted(!muted);
+
+/** The platform topbar owns the mute toggle (see SoundBridge in App.tsx). */
+export function setToggleHandler(fn: () => void) {
+  toggleHandler = fn;
+}
+
+export function toggleMuted() {
+  toggleHandler();
+}
+
+/** Create/resume the AudioContext on a user gesture; never changes the mute state. */
 export function unlockAudio() {
-  muted = false;
   getCtx();
 }
 
