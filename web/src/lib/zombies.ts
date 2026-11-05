@@ -1,9 +1,10 @@
+import type { ColorComp, GameObj, PosComp } from "kaplay";
 import type { K } from "../game";
 import type { ZombieType } from "./types";
-import { sfx } from "./audio";
+import { sfxZombieDie, sfxZombieGroan } from "./audio";
 
 export interface ZombieEntity {
-  obj: ReturnType<K["add"]>;
+  obj: GameObj<PosComp | ColorComp>;
   type: ZombieType;
   health: number;
   maxHealth: number;
@@ -26,7 +27,7 @@ export function spawnZombie(
 ): ZombieEntity {
   const lvlScale = 1 + (waveLevel - 1) * 0.15;
 
-  let color: Parameters<K["rgb"]>;
+  let color: [number, number, number];
   let w: number, h: number, hp: number, spd: number, dmg: number, atkRate: number;
 
   switch (type) {
@@ -40,7 +41,7 @@ export function spawnZombie(
       hp = Math.round(35 * lvlScale); spd = 110 + waveLevel * 5;
       dmg = Math.round(12 * lvlScale); atkRate = 0.8;
       break;
-    case "brute":
+    case "tank":
       color = [80, 40, 120]; w = 28; h = 28;
       hp = Math.round(200 * lvlScale); spd = 35 + waveLevel * 2;
       dmg = Math.round(25 * lvlScale); atkRate = 2.0;
@@ -56,7 +57,7 @@ export function spawnZombie(
   }
 
   const obj = k.add([
-    k.rect(w, h, { radius: type === "brute" ? 0 : 3 }),
+    k.rect(w, h, { radius: type === "tank" ? 0 : 3 }),
     k.pos(x, y),
     k.color(color[0], color[1], color[2]),
     k.area({ shape: new k.Rect(k.vec2(0, 0), w, h) }),
@@ -85,7 +86,7 @@ export function updateZombie(
   now: number,
   dt: number,
   onAttackPlayer: (dmg: number) => void,
-  onDie: () => void
+  _onDie: () => void
 ) {
   if (!zombie.isAlive) return;
 
@@ -96,7 +97,7 @@ export function updateZombie(
     zombie.groanInterval = 3 + Math.random() * 4;
     const dx = playerPos.x - zombie.obj.pos.x;
     const dy = playerPos.y - zombie.obj.pos.y;
-    if (Math.sqrt(dx * dx + dy * dy) < 300) sfx.zombieGroan();
+    if (Math.sqrt(dx * dx + dy * dy) < 300) sfxZombieGroan();
   }
 
   // Flash on hit
@@ -107,7 +108,7 @@ export function updateZombie(
     switch (zombie.type) {
       case "walker": zombie.obj.color = k.rgb(60, 120, 60); break;
       case "runner": zombie.obj.color = k.rgb(180, 80, 80); break;
-      case "brute":  zombie.obj.color = k.rgb(80, 40, 120); break;
+      case "tank":  zombie.obj.color = k.rgb(80, 40, 120); break;
       case "spitter":zombie.obj.color = k.rgb(40, 140, 80); break;
     }
   }
@@ -125,7 +126,7 @@ export function updateZombie(
   }
 
   // Attack
-  const attackRange = zombie.type === "brute" ? 28 : zombie.type === "spitter" ? 180 : 22;
+  const attackRange = zombie.type === "tank" ? 28 : zombie.type === "spitter" ? 180 : 22;
   if (dist < attackRange && now - zombie.lastAttack > zombie.attackRate) {
     zombie.lastAttack = now;
     onAttackPlayer(zombie.damage);
@@ -142,7 +143,7 @@ export function hitZombie(
   zombie.flashTimer = 0.1;
   if (zombie.health <= 0) {
     zombie.isAlive = false;
-    sfx.zombieDeath();
+    sfxZombieDie();
     k_destroy(zombie);
     onDie();
   }

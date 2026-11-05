@@ -185,12 +185,10 @@ export function runPlay(k: K, onScore: (n: number) => void, startDay: number, st
   let notifMsg = "";
   let notifTimer = 0;
   let upgradeMenuOpen = false;
-  let upgradeWeaponIdx = 0;
   let pauseFrame = 0;
 
   // Seed initial supplies
   for (const sp of city.supplyPoints) {
-    const types = ["ammo", "health", "weapon", "upgrade"];
     supplies.push({
       id: nextId(), x: sp.x, y: sp.y,
       type: sp.type, label: sp.type.toUpperCase(),
@@ -373,7 +371,6 @@ export function runPlay(k: K, onScore: (n: number) => void, startDay: number, st
       }
       case "upgrade": {
         upgradeMenuOpen = true;
-        upgradeWeaponIdx = state.activeWeaponIdx;
         showNotif("Weapon upgrade available! Press U to open.");
         break;
       }
